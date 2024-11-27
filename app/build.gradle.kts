@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.material)
     implementation(libs.androidx.material.icons)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.androidx.room.gradle.plugin)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
