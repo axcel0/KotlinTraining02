@@ -1,9 +1,10 @@
 package com.example.kotlintraining02
 
+import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ViewList
@@ -27,18 +28,32 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var isDarkTheme by remember { mutableStateOf(false) }
-            var useDynamicColor by remember { mutableStateOf(false) }
-            KotlinTraining02Theme(darkTheme = isDarkTheme, dynamicColor = useDynamicColor) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    MemoApp(
-                        isDarkTheme = isDarkTheme,
-                        useDynamicColor = useDynamicColor,
-                        onToggleTheme = { isDarkTheme = !isDarkTheme },
-                        onToggleDynamicColor = { useDynamicColor = !useDynamicColor }
-                    )
-                }
-            }
+            MainContent()
+        }
+    }
+}
+
+@Composable
+fun MainContent() {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    var isDarkTheme by remember {
+        mutableStateOf(sharedPreferences.getBoolean("DARK_MODE_PREF", isSystemInDarkTheme))
+    }
+    val onDarkModeChange: (Boolean) -> Unit = {
+        isDarkTheme = it
+        sharedPreferences.edit().putBoolean("DARK_MODE_PREF", it).apply()
+    }
+    var useDynamicColor by remember { mutableStateOf(false) }
+    KotlinTraining02Theme(darkTheme = isDarkTheme, dynamicColor = useDynamicColor) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            MemoApp(
+                isDarkTheme = isDarkTheme,
+                useDynamicColor = useDynamicColor,
+                onToggleTheme = { onDarkModeChange(!isDarkTheme) },
+                onToggleDynamicColor = { useDynamicColor = !useDynamicColor }
+            )
         }
     }
 }
