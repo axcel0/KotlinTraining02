@@ -15,46 +15,29 @@ class MemoViewModel(context: Context) : ViewModel() {
     val memos: StateFlow<List<Memo>> = _memos
 
     private fun loadMemos(): List<Memo> {
-        val memos = mutableListOf<Memo>()
-        sharedPreferences.all.forEach { (key, value) ->
-            if (value is String) {
-                memos.add(Memo(key, value))
-            }
+        return sharedPreferences.all.mapNotNull { (key, value) ->
+            if (value is String) Memo(key, value) else null
         }
-        return memos
-    }
-
-    private fun saveMemo(memo: Memo) {
-        sharedPreferences.edit().putString(memo.title, memo.content).apply()
-    }
-
-    private fun removeMemo(title: String) {
-        sharedPreferences.edit().remove(title).apply()
     }
 
     fun addMemo(memo: Memo) {
         viewModelScope.launch {
-            val updatedMemos = _memos.value + memo
-            _memos.value = updatedMemos
-            saveMemo(memo)
+            _memos.value = _memos.value + memo
+            sharedPreferences.edit().putString(memo.title, memo.content).apply()
         }
     }
 
     fun updateMemo(memo: Memo) {
         viewModelScope.launch {
-            val updatedMemos = _memos.value.map {
-                if (it.title == memo.title) memo else it
-            }
-            _memos.value = updatedMemos
-            saveMemo(memo)
+            _memos.value = _memos.value.map { if (it.title == memo.title) memo else it }
+            sharedPreferences.edit().putString(memo.title, memo.content).apply()
         }
     }
 
     fun deleteMemo(memo: Memo) {
         viewModelScope.launch {
-            val updatedMemos = _memos.value.filter { it.title != memo.title }
-            _memos.value = updatedMemos
-            removeMemo(memo.title)
+            _memos.value = _memos.value.filter { it.title != memo.title }
+            sharedPreferences.edit().remove(memo.title).apply()
         }
     }
 }

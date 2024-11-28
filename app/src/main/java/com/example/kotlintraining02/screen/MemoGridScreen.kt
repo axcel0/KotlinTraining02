@@ -12,7 +12,8 @@ import com.example.kotlintraining02.ui.component.MemoItem
 import com.example.kotlintraining02.viewmodel.MemoViewModel
 
 @Composable
-fun MemoGridScreen(viewModel: MemoViewModel = MemoViewModel(LocalContext.current), onEdit: (Memo) -> Unit, onDelete: (Memo) -> Unit) {
+fun MemoGridScreen(viewModel: MemoViewModel = MemoViewModel(LocalContext.current),
+                   onEdit: (Memo) -> Unit, onDelete: (Memo) -> Unit) {
     val memos by viewModel.memos.collectAsState()
 
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
