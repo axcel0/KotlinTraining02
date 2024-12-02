@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MemoViewModel(context: Context) : ViewModel() {
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("memos", Context.MODE_PRIVATE)
+    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("memos",
+        Context.MODE_PRIVATE)
     private val _memos = MutableStateFlow(loadMemos())
     val memos: StateFlow<List<Memo>> = _memos
 

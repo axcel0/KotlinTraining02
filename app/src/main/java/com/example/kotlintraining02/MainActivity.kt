@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -18,8 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.kotlintraining02.model.Memo
-import com.example.kotlintraining02.screen.MemoGridScreen
-import com.example.kotlintraining02.screen.MemoListScreen
+import com.example.kotlintraining02.view.MemoGridScreen
+import com.example.kotlintraining02.view.MemoListScreen
 import com.example.kotlintraining02.ui.theme.KotlinTraining02Theme
 import com.example.kotlintraining02.viewmodel.MemoViewModel
 import kotlinx.coroutines.launch
@@ -39,15 +41,16 @@ fun MainContent() {
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     val isSystemInDarkTheme = isSystemInDarkTheme()
     var isDarkTheme by remember {
-        mutableStateOf(sharedPreferences.getBoolean("DARK_MODE_PREF", isSystemInDarkTheme))
+        mutableStateOf(sharedPreferences.getBoolean("DARK_MODE_PREFS", isSystemInDarkTheme))
     }
     val onDarkModeChange: (Boolean) -> Unit = {
         isDarkTheme = it
-        sharedPreferences.edit().putBoolean("DARK_MODE_PREF", it).apply()
+        sharedPreferences.edit().putBoolean("DARK_MODE_PREFS", it).apply()
     }
     var useDynamicColor by remember { mutableStateOf(false) }
     KotlinTraining02Theme(darkTheme = isDarkTheme, dynamicColor = useDynamicColor) {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Surface(modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background) {
             MemoApp(
                 isDarkTheme = isDarkTheme,
                 useDynamicColor = useDynamicColor,
@@ -60,7 +63,8 @@ fun MainContent() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemoApp(isDarkTheme: Boolean, useDynamicColor: Boolean, onToggleTheme: () -> Unit, onToggleDynamicColor: () -> Unit) {
+fun MemoApp(isDarkTheme: Boolean, useDynamicColor: Boolean,
+            onToggleTheme: () -> Unit, onToggleDynamicColor: () -> Unit) {
     var isGridView by remember { mutableStateOf(false) }
     var drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -84,7 +88,8 @@ fun MemoApp(isDarkTheme: Boolean, useDynamicColor: Boolean, onToggleTheme: () ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Dynamic Color")
                         Spacer(modifier = Modifier.weight(1f))
-                        Switch(checked = useDynamicColor, onCheckedChange = { onToggleDynamicColor() })
+                        Switch(checked = useDynamicColor, onCheckedChange = {
+                            onToggleDynamicColor() })
                     }
                 }
             }
@@ -102,8 +107,11 @@ fun MemoApp(isDarkTheme: Boolean, useDynamicColor: Boolean, onToggleTheme: () ->
                     actions = {
                         IconButton(onClick = { isGridView = !isGridView }) {
                             Icon(
-                                imageVector = if (isGridView) Icons.AutoMirrored.Default.ViewList else Icons.Filled.ViewModule,
-                                contentDescription = if (isGridView) "Switch to List View" else "Switch to Grid View"
+                                imageVector = if (isGridView)
+                                    Icons.AutoMirrored.Default.ViewList
+                                else Icons.Filled.ViewModule,
+                                contentDescription = if (isGridView) "Switch to List View"
+                                else "Switch to Grid View"
                             )
                         }
                     }
@@ -119,28 +127,32 @@ fun MemoApp(isDarkTheme: Boolean, useDynamicColor: Boolean, onToggleTheme: () ->
             }
         ) { paddingValues ->
             Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                if (isGridView) {
-                    MemoGridScreen(
-                        viewModel = viewModel,
-                        onEdit = { memo ->
-                            showDialog = true
-                            currentMemo = memo
-                        },
-                        onDelete = { memo ->
-                            viewModel.deleteMemo(memo)
-                        }
-                    )
-                } else {
-                    MemoListScreen(
-                        viewModel = viewModel,
-                        onEdit = { memo ->
-                            showDialog = true
-                            currentMemo = memo
-                        },
-                        onDelete = { memo ->
-                            viewModel.deleteMemo(memo)
-                        }
-                    )
+                Crossfade(targetState = isGridView, animationSpec = tween(500),
+                    label = ""
+                ) { isGrid ->
+                    if (isGrid) {
+                        MemoGridScreen(
+                            viewModel = viewModel,
+                            onEdit = { memo ->
+                                showDialog = true
+                                currentMemo = memo
+                            },
+                            onDelete = { memo ->
+                                viewModel.deleteMemo(memo)
+                            }
+                        )
+                    } else {
+                        MemoListScreen(
+                            viewModel = viewModel,
+                            onEdit = { memo ->
+                                showDialog = true
+                                currentMemo = memo
+                            },
+                            onDelete = { memo ->
+                                viewModel.deleteMemo(memo)
+                            }
+                        )
+                    }
                 }
             }
         }
